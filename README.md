@@ -17,6 +17,7 @@ views.py: berisi logika utama. Di sini request diproses, data bisa diminta dari 
 models.py: berhubungan langsung dengan database. Views.py akan melakukan query (baca/tulis) lewat models.py, dan hasilnya dikirim kembali ke views.
 main.html (Template HTML): menerima data dari views.py melalui context, lalu menghasilkan halaman web dinamis.
 Client: akhirnya menerima HTTP response berupa halaman HTML yang sudah jadi.
+sumber: https://user-images.githubusercontent.com/105644250/267360412-9cb5536b-83d7-45ea-ae2b-a8abde7cde9e.png
 
 3. Jelaskan peran settings.py dalam proyek Django!
 settings.py adalah modul python yang berfungsi sebagai pusat konfigurasi untuk projek Django. Semua hal penting mulai dari database yang dipakai, aplikasi apa saja yang aktif, aturan keamanan, dan lokasi file statis diatur di sini. File ini juga bisa membaca environment variables, jadi pengembang bisa dengan mudah membedakan pengaturan untuk development dan production tanpa harus ubah-ubah kode. Karena ditulis dengan Python biasa, file ini juga fleksibel banget dan gampang disesuaikan sesuai kebutuhan proyek.
