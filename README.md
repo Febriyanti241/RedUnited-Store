@@ -1,3 +1,4 @@
+TUGAS 1
 1. Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial).
 I. Saya membuat direktori RedUnited-Store, lalu membuat dan mengaktifkan virtual environment dengan python -m venv env dan env\Scripts\activate. Setelah menyiapkan requirements.txt berisi dependencies (Django, gunicorn, whitenoise, psycopg2-binary, dll.), saya instal dengan pip install -r requirements.txt. Kemudian membuat proyek Django bernama redunited_store dengan django-admin startproject redunited_store ., menambahkan file .env dan .env.prod yang dihubungkan ke settings.py, lalu menjalankan migrasi database dan runserver. Halaman roket Django muncul di http://localhost:8000 sebagai tanda proyek berhasil.
 
@@ -41,3 +42,34 @@ sumber: https://dev.to/codefusionlab/-why-django-is-the-perfect-framework-for-be
 
 6. Apakah ada feedback untuk asisten dosen tutorial 1 yang telah kamu kerjakan sebelumnya?
 Menurut saya dokumen pada tutorial 1 sudah sangat jelas. Selain itu, asisten dosen juga telah stand by untuk mahasiswa sehingga memudahkan mahasiswa untuk bertanya jika terdapat kendala. 
+
+
+
+
+
+TUGAS 2
+<!-- 1. Jelaskan mengapa kita memerlukan data delivery dalam pengimplementasian sebuah platform? -->
+Data delivery adalah proses pengiriman data dari sumber ke tujuan secara cepat, efisien, dan aman, baik melalui batch maupun real-time. Data delivery berperan penting dalam pengimplementasian sebuah platform karena memungkinankan pengiriman data dari server ke client secara cepat dan efisien. Mekanisme ini memungkinkan developer untuk mengirim data besar dalam bebergai format seperti JSON, XML, atau HTML yang menjadikan aplikasi web lebih responsif, interaktif, dan fleksibel untuk diakses di mana saja. Dengan dukungan protokol seperti HTTP/HTTPS atau pipeline integrasi, data delivery juga membantu mengatasi tantangan terkait keamanan, akurasi, dan skalabilitas melalui enkripsi, validasi, serta pemanfaatan infrastruktur cloud yang fleksibel.
+Sumber: https://www.fanruan.com/en/glossary/big-data/data-delivery
+
+<!-- 2. Menurutmu, mana yang lebih baik antara XML dan JSON? Mengapa JSON lebih populer dibandingkan XML? -->
+Menurut saya, saya lebih memilih untuk menggunakan JSON. Hal ini dikarenakan JSON menggunakan key value structure lebih mudah dibaca manusia dibandingan dengan XML yang menggunakan key value structure. Selain itu, JSON sangat cocok untuk pertukaran data dari aplikasi web modern karena terintegrasi secara alami dengan JavaScript. Parsing JSON lebih cepat dan langsung bisa digunakan sebagai objek dalam bahasa pemrograman modern sehingga lebih memudahkan developer. Maka dari itu JSON lebih populer dibandingkan dengan XML
+sumber: https://www.geeksforgeeks.org/html/difference-between-json-and-xml/
+
+<!-- 3. Jelaskan fungsi dari method is_valid() pada form Django dan mengapa kita membutuhkan method tersebut? -->
+Method is_valid() berfungsi untuk memvalidasi input user apakah sudah sesuai dengan aturan sebelum diproses lebih lanjut. Method ini juga mengantisipasi agar kita terhindar dari error saat menyimpan data ke database. Dengan demikian, aplikasi akan lebih aman dan andal karena input yang tidak valid langsung ditolak.
+
+<!-- 4. Mengapa kita membutuhkan csrf_token saat membuat form di Django? Apa yang dapat terjadi jika kita tidak menambahkan csrf_token pada form Django? Bagaimana hal tersebut dapat dimanfaatkan oleh penyerang? -->
+Karena csrf_token adalah token yang berfungsi sebagai security. Token ini di-generate secara otomatis oleh Django untuk mencegah serangan berbahaya dan untuk memastikan bahwa form benar benar dari halaman aplikasi sendiri, bukan dari situs lain. Jika kita tidak menambahkan csrf_token, Django tidak punya cara untuk memverifikasi asal request yang mengakibatkan form rentan terhadap Cross-Site Request Forgery dan siapapun dapat memalsukan request seolah menjadi user yang sah. Hal ini dapat dimanfaatkan oleh penyerang untuk menyamar sebagai user asli yang dapat mengakses segala data di dalam akun pengguna.
+
+<!-- 5. Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial). -->
+BELUM
+
+<!-- 6. Apakah ada feedback untuk asdos di tutorial 2 yang sudah kalian kerjakan? -->
+Tidak ada. Tutorial sudah mempunyai intruksi yang sangat jelas dan arahan dari tim asdos juga sudah sangat membantu.
+
+<!-- 7. Mengakses keempat URL di poin 2 menggunakan Postman, membuat screenshot dari hasil akses URL pada Postman, dan menambahkannya ke dalam README.md. -->
+![alt text](<Screenshot 2025-09-14 231826.png>)
+![alt text](<Screenshot 2025-09-14 231941.png>)
+![alt text](<Screenshot 2025-09-14 232035.png>)
+![alt text](<Screenshot 2025-09-14 232051.png>)
