@@ -63,7 +63,21 @@ Method is_valid() berfungsi untuk memvalidasi input user apakah sudah sesuai den
 Karena csrf_token adalah token yang berfungsi sebagai security. Token ini di-generate secara otomatis oleh Django untuk mencegah serangan berbahaya dan untuk memastikan bahwa form benar benar dari halaman aplikasi sendiri, bukan dari situs lain. Jika kita tidak menambahkan csrf_token, Django tidak punya cara untuk memverifikasi asal request yang mengakibatkan form rentan terhadap Cross-Site Request Forgery dan siapapun dapat memalsukan request seolah menjadi user yang sah. Hal ini dapat dimanfaatkan oleh penyerang untuk menyamar sebagai user asli yang dapat mengakses segala data di dalam akun pengguna.
 
 <!-- 5. Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial). -->
-BELUM
+I. Pertama, buat empat fungsi baru di views.py. Fungsinya biar data yang udah ada di database bisa ditampilkan dalam format XML atau JSON. Ada dua versi, yang nampilin semua data, dan yang nampilin data berdasarkan ID tertentu. Jadi kalau aku buka /xml/, semua data keluar dalam bentuk XML, kalau /json/1/, cuma data dengan ID 1 yang keluar dalam bentuk JSON. Untuk keempat fungsi ini diambil dari tutorial 2, namun kata "news" diubah menjadi "product"
+
+II. Setelah view-nya jadi, sambungkan ke URL di urls.py yang ada di direktori main. Jadi aku daftarin link kayak /xml/, /json/, /xml/<id>/, dan /json/<id>/ dengan format 
+path('product/<str:id>/', show_product, name='show_product'),
+path('xml/', show_xml, name='show_xml'),
+path('json/', show_json, name='show_json'),
+path('xml/<str:product_id>/', show_xml_by_id, name='show_xml_by_id'),
+path('json/<str:product_id>/', show_json_by_id, name='show_json_by_id'). 
+Dengan begitu, fungsi yang tadi aku bikin bisa dipanggil lewat browser atau Postman dengan alamat yang jelas.
+
+III. Kemudian, buat halaman yang isinya daftar semua data. Halaman ini dibuat pada folder main.html yang berada pada direktori main. Di halaman ini aku kasih tombol “Add Product” buat nambah data baru, dan tombol “Details” di setiap item. Jadi user bisa lihat daftar data yang ada, terus kalau mau nambah tinggal klik Add Product, kalau mau lihat detail tinggal klik Details.
+
+IV. Buat forms.py di direktori main yang mendefinisikan atribut apa saja yang ingin ditambahkan. Waktu tombol “Add Product” diklik, user diarahkan ke halaman form. Di form ini user bisa isi data sesuai kolom yang ada di model (misalnya judul, konten, kategori, dll). Begitu disubmit, data langsung masuk ke database, lalu biasanya balik ke halaman list biar hasilnya langsung kelihatan. Setelah membuat model juga jangan lupa untuk makemigration dan migrate. 
+
+V. Buat di view.py show_product(request, id) yang menggunakan get_object_or_404(Product, pk=id) untuk ambil objek, panggil product.increment_views() jika ada fungsi untuk menambah view count, lalu render template product_detail.html dengan konteks {'product': product}. Di template tampilkan nama produk, harga, kategori, tanggal, thumbnail dan deskripsi produk, serta tombol “Back to Product List”.
 
 <!-- 6. Apakah ada feedback untuk asdos di tutorial 2 yang sudah kalian kerjakan? -->
 Tidak ada. Tutorial sudah mempunyai intruksi yang sangat jelas dan arahan dari tim asdos juga sudah sangat membantu.
