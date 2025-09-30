@@ -1,5 +1,5 @@
 {% load static %}
-<article class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+<article class="bg-[#7B0101] rounded-lg border border-[#7B0101] hover:shadow-lg transition-shadow duration-300 overflow-hidden">
   <!-- Thumbnail -->
   <div class="aspect-[16/9] relative overflow-hidden">
     {% if product.thumbnail %}
@@ -18,7 +18,7 @@
     <!-- Status Badges -->
     <div class="absolute top-3 right-3 flex space-x-2">
       {% if product.is_featured %}
-        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-[#FFFCEF] text-yellow-800">
           Featured
         </span>
       {% endif %}
@@ -32,16 +32,16 @@
 
   <!-- Content -->
   <div class="p-5">
-    <div class="flex items-center text-sm text-gray-500 mb-3">
+    <div class="flex items-center text-base font-semibold text-[#FFE600] mb-3">
       <time datetime="{{ product.date_added|date:'c' }}">
         {{ product.date_added|date:"M j, Y" }}
       </time>
       <span class="mx-2">•</span>
-      <span>{{ product.price }} price</span>
+      <span>Price: {{ product.price }}</span>
     </div>
 
-    <h3 class="text-lg font-semibold text-gray-900 mb-3 line-clamp-2 leading-tight">
-      <a href="{% url 'main:show_product' product.id %}" class="hover:text-green-600 transition-colors">
+    <h3 class="text-lg font-semibold text-[#FFFCEF] mb-3 line-clamp-2 leading-tight">
+      <a href="{% url 'main:show_product' product.id %}" class="hover:text-[#EF9101] transition-colors">
         {{ product.name }}
       </a>
     </h3>
@@ -53,14 +53,14 @@
     <!-- Action Buttons -->
     {% if user.is_authenticated and product.user == user %}
       <div class="flex items-center justify-between pt-4 border-t border-gray-100">
-        <a href="{% url 'main:show_product' product.id %}" class="text-green-600 hover:text-green-700 font-medium text-sm transition-colors">
+        <a href="{% url 'main:show_product' product.id %}" class="text-[#FFE600] hover:text-[#EF9101] font-medium text-sm transition-colors">
           Details
         </a>
 
         <div class="flex items-center space-x-2">
           <!-- Edit as button-like link -->
           <a href="{% url 'main:edit_product' product.id %}"
-             class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors shadow-sm">
+             class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-[#FFFCEF] hover:bg-gray-200 text-gray-700 transition-colors shadow-sm">
             Edit
           </a>
 
@@ -77,7 +77,7 @@
       </div>
     {% else %}
       <div class="pt-4 border-t border-gray-100">
-        <a href="{% url 'main:show_product' product.id %}" class="text-green-600 hover:text-green-700 font-medium text-sm transition-colors">
+        <a href="{% url 'main:show_product' product.id %}" class="text-[#FFE600] hover:text-[#EF9101] font-medium text-sm transition-colors">
           Details
         </a>
       </div>
