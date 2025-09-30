@@ -10,7 +10,7 @@ from main.models import Product
 import datetime
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-
+    
 # Create your views here.
 @login_required(login_url='/login')
 def show_main(request):
@@ -117,3 +117,21 @@ def logout_user(request):
     response.delete_cookie('last_login')
     response.delete_cookie('username')
     return response
+
+def edit_product(request, id):
+    product = get_object_or_404(Product, pk=id)
+    form = ProductForm(request.POST or None, instance=product)
+    if form.is_valid() and request.method == 'POST':
+        form.save()
+        return redirect('main:show_main')
+
+    context = {
+        'form': form
+    }
+
+    return render(request, "edit_product.html", context)
+
+def delete_product(request, id):
+    product = get_object_or_404(Product, pk=id)
+    product.delete()
+    return HttpResponseRedirect(reverse('main:show_main'))
