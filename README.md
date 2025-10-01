@@ -138,3 +138,67 @@ II. Jalankan perintah python manage.py runserver lalu buka aplikasi melalui loca
 III. Cara menghubungkan antara produk dan user dibuat melalui field user = models.ForeignKey(User, on_delete=models.CASCADE, null=True) yang ditambahkan pada berkas models.py. Field ini menyatakan bahwa setiap produk dimiliki oleh satu objek User, yaitu pengguna yang membuat atau menambahkannya. Penggunaan ForeignKey berarti hubungan yang terbentuk adalah many-to-one, di mana banyak produk bisa terhubung ke satu pengguna. Argumen on_delete=models.CASCADE memastikan bahwa jika seorang pengguna dihapus, maka seluruh produk miliknya juga ikut terhapus, sehingga konsistensi data tetap terjaga.
 
 IV. Untuk menampilkan detail informasi pengguna yang sedang login sekaligus memanfaatkan cookies, beberapa langkah dilakukan pada aplikasi. Pertama, di dalam context ditambahkan data username yang diambil dari cookie username, dengan cadangan nilai request.user.username jika cookie belum tersedia. Selanjutnya, saat pengguna berhasil login, username disimpan ke dalam cookie menggunakan response.set_cookie('username', user.username) sehingga bisa dipakai kembali pada halaman utama. Ketika logout, cookie tersebut dihapus dengan response.delete_cookie('username') agar tidak tersisa setelah sesi berakhir. Terakhir, pada template utama ditambahkan elemen HTML yang menampilkan sapaan personal menggunakan variabel {{ username }}. Dengan alur ini, aplikasi dapat memberikan pengalaman yang lebih interaktif dengan menampilkan informasi pengguna yang sedang login, serta memastikan data cookie dikelola dengan baik sesuai status login maupun logout.
+
+
+
+
+
+TUGAS 5
+1.  Jika terdapat beberapa CSS selector untuk suatu elemen HTML, jelaskan urutan prioritas pengambilan CSS selector tersebut!
+Browser menghitung specificity untuk menentukan aturan CSS mana yang dipakai bila beberapa selector cocok pada elemen yang sama. Specificity dapat dibayangkan sebagai empat angka (a, b, c, d) yang merepresentasikan, dari paling tinggi ke paling rendah, inline style, jumlah ID, jumlah class atau attribute atau pseudo-class, dan jumlah elemen atau pseudo-element. Urutan prioritas umum dari terendah ke tertinggi adalah selector universal (*) lalu selector elemen atau pseudo-element seperti div atau p lalu class, pseudo-class, atau attribute seperti .card, :hover, [type="text"] lalu ID selector seperti #header lalu inline styles (atribut style). Sementara !important bukan bagian dari perhitungan specificity, aturan dengan !important akan menimpa aturan biasa kecuali ada !important lain dengan specificity lebih tinggi. Cara menghitung adalah dengan menjumlahkan masing-masing jenis selector ke dalam tuple (a, b, c, d). Contoh dari artikel: selector #header .menu-item a:hover memiliki specificity (0, 1, 2, 1) karena ada satu ID, dua class atau pseudo-class (.menu-item dan :hover), dan satu elemen (a). Jika dua aturan konflik, aturan dengan specificity lebih besar yang berlaku. Bila specificity sama, aturan yang dituliskan terakhir yang menang. Untuk praktik yang lebih baik, artikel menyarankan agar tidak berlebihan menggunakan ID, menyederhanakan selector, dan menggunakan !important secara bijak.
+
+Sumber: https://www.easycoding.id/blog/urutan-prioritas-selector-css-specificity-panduan-lengkap-untuk-memahami-dan-menggunakan
+
+2. Mengapa responsive design menjadi konsep yang penting dalam pengembangan aplikasi web? Berikan contoh aplikasi yang sudah dan belum menerapkan responsive design, serta jelaskan mengapa!
+
+Desain responsif penting karena banyak pengguna mengakses web dari berbagai perangkat (desktop, tablet, ponsel) dengan ukuran layar berbeda. Jika situs tidak mobile-friendly, tata letak bisa rusak di ponsel dan pengguna kesulitan membaca atau menavigasi (harus zoom atau scroll berlebihan), sehingga pengalaman pengguna buruk. Mesin pencari seperti Google juga cenderung menurunkan peringkat situs yang tidak responsif. Contohnya, banyak situs besar seperti Facebook, Amazon, CNN, Twitter, atau Airbnb sudah menerapkan desain responsif, sehingga tampilan situs tetap bagus dan mudah digunakan di layar apapun. Sebaliknya, situs lama atau e-commerce lokal yang belum dioptimalkan (desain statis jadul) masih menampilkan layout berantakan di ponsel, misalnya tombol terlalu kecil atau kolom melebar ke samping, sehingga situs tersebut sulit digunakan di perangkat mobile dan berpotensi kehilangan pengunjung.
+
+Sumber: https://www.seattlenewmedia.com/blog/why-responsive-design-is-important#:~:text=A%20non,negatively%20affect%20your%20SEO%20ranking
+
+3.  Jelaskan perbedaan antara margin, border, dan padding, serta cara untuk mengimplementasikan ketiga hal tersebut!
+
+Margin, border, dan padding adalah tiga komponen utama dari CSS box model yang mengatur ruang dan tampilan elemen. Susunannya dari dalam ke luar adalah: konten → padding → border → margin.
+
+a. Padding adalah ruang di dalam elemen, yaitu jarak antara konten (teks/gambar) dengan tepi elemen. Fungsinya memberi ruang agar konten tidak menempel pada garis tepi.
+
+b. Border adalah garis atau bingkai yang mengelilingi elemen, berada di luar padding. Border bisa diatur ketebalan, warna, maupun gayanya, dan berfungsi membatasi area elemen.
+
+c. Margin adalah ruang di luar border yang memisahkan elemen dari elemen lain. Margin hanya mengatur jarak antar-elemen dan tidak bisa diberi latar atau garis.
+
+Cara implementasi di CSS cukup sederhana: gunakan padding untuk ruang dalam, border untuk garis tepi, dan margin untuk jarak luar, baik dengan shorthand maupun per-sisi (misalnya padding-top, margin-left). Perlu diingat, margin vertikal bisa mengalami collapse (dua margin bertemu dihitung yang terbesar, bukan dijumlah), sedangkan padding dan border tidak. Untuk mempermudah kontrol ukuran elemen, sering digunakan box-sizing: border-box agar width sudah termasuk padding dan border. Contoh singkat:
+.box {
+  width: 300px;              /* ukuran konten (atau total jika border-box) */
+  padding: 10px;             /* ruang dalam */
+  border: 2px solid #000;    /* garis tepi */
+  margin: 20px;              /* jarak ke elemen lain */
+  box-sizing: border-box;    /* opsional: makes width include padding & border */
+}
+
+Sumber: https://www.geeksforgeeks.org/css/how-to-use-margin-border-and-padding-to-fit-together-in-the-box-model/
+
+4. Jelaskan konsep flex box dan grid layout beserta kegunaannya!
+
+Flexbox adalah sistem layout satu dimensi yang mengatur item sepanjang satu sumbu (baris atau kolom). Diaktifkan dengan display: flex, Flexbox memudahkan perataan dan distribusi ruang antar-item menggunakan properti seperti flex-direction, justify-content, align-items, dan flex pada anaknya. Gunakan Flexbox untuk komponen linear: navbar, bar alat, baris kartu, atau bila kamu ingin supaya item otomatis menyesuaikan ukuran dan rapi saat ruang berubah.
+
+Grid adalah sistem layout dua dimensi untuk mengatur item dalam baris dan kolom sekaligus. Diaktifkan dengan display: grid, kamu mengontrol kolom/baris dengan grid-template-columns/grid-template-rows, serta jarak antar sel dengan gap. Grid ideal untuk tata letak halaman yang terstruktur—misalnya dashboard, galeri, atau grid produk—karena kamu bisa menempatkan elemen ke area tertentu dalam matriks.
+
+Perbedaan praktis dan kapan pakai: Flexbox dipakai saat masalah hanya satu dimensi (mensejajarkan item di satu baris/kolom, mengatur distribusi ruang), pakai Grid saat butuh kontrol dua dimensi (layout halaman kompleks). Di praktik nyata sering kombinasi keduanya paling kuat: Grid untuk kerangka halaman, lalu Flexbox untuk menyusun isi tiap sel
+
+Sumber: https://www.geeksforgeeks.org/css/comparison-between-css-grid-css-flexbox/
+
+
+5. Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial)!
+
+I. Pertama, untuk fitur edit dan delete product saya mulai dari sisi backend: menambahkan fungsi edit_product dan delete_product di views.py. Setiap fungsi dibuat dengan memperhatikan otorisasi, artinya hanya user pemilik product yang boleh mengedit/hapus. Setelah view siap saya tambahkan routing url yang jelas untuk setiap aksi dan siapkan template HTML edit_product.html supaya alur navigasi logis dan mudah diuji. Karena fungsi delete_product sebagai action dan bukan page, artinya fungsinya langsung mengeksekusi penghapusan lalu meng-redirect user, jadi tidak perlu atau tidak mengembalikan template HTML.
+
+II. Kedua, agar tampilan menarik dan konsisten, saya pasang Tailwind pada template dasar (base) sehingga semua halaman mewarisi style yang sama. Di base saya juga menaruh meta viewport supaya browser di perangkat mobile tahu lebar viewport yang harus dipakai saat merender halaman dan mendefinisikan global CSS untuk menyamakan gaya form (input, textarea, select, checkbox) supaya tampil lebih rapi, konsisten, dan responsif.
+
+III. Ketiga, setelah framework terpasang, saya ubah template html yaitu login.html, register.html,  create_product.html, edit_product.html, dan detail_product.html dengan mengganti background, tombol, dan efek hover sesuai warna yang diinginkan, serta menyesuaikan ukuran dan ketebalan teks agar hierarki visual jelas. Semua styling dibuat menggunakan utilitas Tailwind agar mudah diubah kemudian.
+
+IV. Bagian 1: Jika belum ada product, saya siapkan gambar fallback di folder static/image dan menampilkannya dalam sebuah card informatif yang menyertakan pesan singkat dan tombol ajakan (create product) supaya pengguna tahu langkah selanjutnya.
+
+Bagian 2: Jika sudah ada product, saya memecah tampilan menjadi komponen card terpisah (card_product) yang dipakai berulang dalam loop: setiap card menampilkan thumbnail (atau fallback per-item), nama, tanggal, harga, ringkasan, dan action. Pemisahan komponen ini memudahkan pengujian dan styling ulang tanpa menyentuh logika utama.
+
+V. Edit dibuat sebagai link (GET) yang bergaya tombol karena fungsinya navigasi ke halaman edit, sedangkan Delete disajikan sebagai form POST dengan proteksi CSRF dan konfirmasi sebelum submit. Alasan utamanya adalah memisahkan operasi baca (GET) dan operasi yang mengubah data (POST) untuk keamanan dan kepatuhan praktik web. Selain itu, saya menambahkan atribut aksesibilitas (mis. aria-label) dan memastikan tombol dapat dioperasikan dengan keyboard.
+
+VI. untuk navbar saya buat file template terpisah dan memasukkannya ke dalam halaman utama via include, sehingga navbar konsisten di semua halaman. Struktur navbar memuat logo/brand, link navigasi, dan area user (login/register atau info user jika sudah login). Untuk responsivitas saya pakai prinsip “hidden/visible by breakpoint”. Menu penuh muncul di layar lebar, sedangkan di mobile tampil tombol hamburger yang men-toggle menu vertikal. Dengan demikian navbar tetap gampang diakses di mobile maupun desktop, dan konten pengguna dapat beradaptasi sesuai ukuran layar.
