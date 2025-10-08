@@ -8,8 +8,12 @@ from django.core import serializers
 from main.forms import ProductForm
 from main.models import Product
 import datetime
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
+
     
 # Create your views here.
 @login_required(login_url='/login')
@@ -28,7 +32,8 @@ def show_main(request):
         'npm': '2406496214',
         'product_list': product_list,
         'last_login': request.COOKIES.get('last_login', 'Never'),
-        'username' : request.COOKIES.get('username', request.user.username)
+        'username' : request.COOKIES.get('username', request.user.username),
+        'user': request.user
 
     }
 
@@ -63,8 +68,22 @@ def show_xml(request):
 
 def show_json(request):
     product_list = Product.objects.all()
-    json_data = serializers.serialize("json", product_list)
-    return HttpResponse(json_data, content_type="application/json")
+    data = [
+        {
+            'id': str(product.pk),
+            'name': product.name,
+            'description': product.description,
+            'category': product.category,
+            'thumbnail': product.thumbnail,
+            'price': product.price,
+            'date_added': product.date_added.isoformat() if product.date_added else None,
+            'user': product.user.username if product.user else None,
+            'user_id': product.user.pk if product.user else None,
+        }
+        for product in product_list
+    ]
+
+    return JsonResponse(data, safe=False)
 
 def show_xml_by_id(request, product_id):
     try:
@@ -79,6 +98,7 @@ def show_json_by_id(request, product_id):
         product_item = Product.objects.get(pk=product_id)
         json_data = serializers.serialize("json", [product_item])
         return HttpResponse(json_data, content_type="application/json")
+        # return JsonResponse(json_data,safe=False)
     except Product.DoesNotExist:
         return HttpResponse(status=404)
     
@@ -116,6 +136,7 @@ def logout_user(request):
     response = HttpResponseRedirect(reverse('main:login'))
     response.delete_cookie('last_login')
     response.delete_cookie('username')
+    response.set_cookie('logout_success', 'true', max_age=5)
     return response
 
 def edit_product(request, id):
@@ -135,3 +156,17 @@ def delete_product(request, id):
     product = get_object_or_404(Product, pk=id)
     product.delete()
     return HttpResponseRedirect(reverse('main:show_main'))
+
+@csrf_exempt
+@require_POST
+def delete_product_ajax(request, id):
+    product = get_object_or_404(Product, pk=id)
+
+    if not request.user.is_authenticated or request.user != product.user:
+        return JsonResponse({'detail': 'Forbidden'}, status=403)
+
+    try:
+        product.delete()
+        return JsonResponse({'detail': 'DELETED'}, status=200)
+    except Exception as e:
+        return JsonResponse({'detail': 'ERROR', 'error': str(e)}, status=500)

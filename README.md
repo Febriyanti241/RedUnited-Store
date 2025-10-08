@@ -112,7 +112,7 @@ https://stackoverflow.com/questions/8421200/using-authenticationform-in-django
 
 Autentikasi: Proses memastikan bahwa seseorang benar benar siapa yang mereka klaim (user asli). Contoh: login dengan username dan password, verifikasi identitas. Di Django, autentikasi ditangani oleh modul django.contrib.auth yang menyediakan model User, fungsi authenticate(), login(), dan logout(). Middleware AuthenticationMiddleware juga secara otomatis menautkan setiap request dengan user yang sedang login atau menganggapnya sebagai anonymous user jika belum login.
 
-Otorisasi: Proses setelah autentikasi, di mana akan memeriksa apakah pengguna yang sudahterverifikasi mempunyai hak akses tertentu atau bisa melakukan aksi tertentu. Contoh: apakah user boleh menghapus post, melihat dashboard admin, atau mengedit data tertentu. Sementara itu, otorisasi di Django diatur melalui sistem permissions dan groups. Permissions menentukan aksi apa yang boleh dilakukan user, misalnya menambah, mengubah, atau menghapus data. Groups mempermudah pengaturan izin secara kolektif. Untuk membatasi akses ke halaman atau view, Django menyediakan decorator seperti login_required serta mixin seperti PermissionRequiredMixin
+Otorisasi: Proses setelah autentikasi, di mana akan memeriksa apakah pengguna yang sudah terverifikasi mempunyai hak akses tertentu atau bisa melakukan aksi tertentu. Contoh: apakah user boleh menghapus post, melihat dashboard admin, atau mengedit data tertentu. Sementara itu, otorisasi di Django diatur melalui sistem permissions dan groups. Permissions menentukan aksi apa yang boleh dilakukan user, misalnya menambah, mengubah, atau menghapus data. Groups mempermudah pengaturan izin secara kolektif. Untuk membatasi akses ke halaman atau view, Django menyediakan decorator seperti login_required serta mixin seperti PermissionRequiredMixin
 
 Sumber: https://docs.djangoproject.com/en/5.2/topics/auth/
 
@@ -202,3 +202,38 @@ Bagian 2: Jika sudah ada product, saya memecah tampilan menjadi komponen card te
 V. Edit dibuat sebagai link (GET) yang bergaya tombol karena fungsinya navigasi ke halaman edit, sedangkan Delete disajikan sebagai form POST dengan proteksi CSRF dan konfirmasi sebelum submit. Alasan utamanya adalah memisahkan operasi baca (GET) dan operasi yang mengubah data (POST) untuk keamanan dan kepatuhan praktik web. Selain itu, saya menambahkan atribut aksesibilitas (mis. aria-label) dan memastikan tombol dapat dioperasikan dengan keyboard.
 
 VI. untuk navbar saya buat file template terpisah dan memasukkannya ke dalam halaman utama via include, sehingga navbar konsisten di semua halaman. Struktur navbar memuat logo/brand, link navigasi, dan area user (login/register atau info user jika sudah login). Untuk responsivitas saya pakai prinsip “hidden/visible by breakpoint”. Menu penuh muncul di layar lebar, sedangkan di mobile tampil tombol hamburger yang men-toggle menu vertikal. Dengan demikian navbar tetap gampang diakses di mobile maupun desktop, dan konten pengguna dapat beradaptasi sesuai ukuran layar.
+
+
+
+TIGAS INDIVIDU 6
+1. Apa perbedaan antara synchronous request dan asynchronous request?
+Pada synchronus request, proses pengiriman dan penerimaan data berlangsung secara berurutan dan saling menunggu. Artinya, ketika permintaan dikirim ke server, program akan berhenti sementara sampai server memberikan respons. Selama proses itu, tidak ada kode lain yang bisa dijalankan, sehingga antarmuka pengguna (UI) dapat terasa “hang” atau tidak responsif. Pendekatan ini sederhana karena alurnya linear dan mudah dipahami, tetapi sangat tidak efisien untuk aplikasi web modern yang membutuhkan interaksi cepat dan dinamis.
+
+Sebaliknya, asynchronus request memungkinkan program untuk mengirim permintaan ke server tanpa harus menunggu respons terlebih dahulu. Kode lain tetap bisa dijalankan sementara server memproses data, dan hasil permintaan akan diterima kemudian melalui callback, promise, atau mekanisme event. Dengan cara ini, UI tetap responsif dan pengguna masih bisa berinteraksi dengan halaman. Meskipun pengelolaan alurnya sedikit lebih kompleks, asynchronous jauh lebih efisien dan menjadi standar utama dalam pengembangan web modern karena memberikan pengalaman pengguna yang lebih lancar dan cepat.
+
+sumber: Apa perbedaan antara synchronous request dan asynchronous request?
+
+2. Bagaimana AJAX bekerja di Django (alur request–response)?
+
+Saat sebuah aksi di browser memicu AJAX (misalnya fetch() atau XMLHttpRequest), JavaScript mengirimkan permintaan HTTP ke URL tertentu tanpa me-reload halaman yang kemudian permintaan itu sampai ke server, Django membungkusnya menjadi objek HttpRequest dan URLconf (routing) menentukan view mana yang dipanggil. Di dalam view Django kita membaca data dari request.GET/request.POST atau dari request.body (atau request.data jika pakai Django REST Framework), menjalankan logika bisnis—query database, validasi, atau operasi lain yang kemudian mengembalikan response yang biasanya berupa JsonResponse atau HttpResponse dengan content-type application/json dan status code yang sesuai. Response tersebut dikirim balik ke browser, dan JavaScript (melalui callback, .then() pada Promise, atau async/await) menerima JSON/teks itu lalu memperbarui DOM atau state aplikasi tanpa memuat ulang halaman. Perlu diingat bahwa untuk operasi yang mengubah data (POST/PUT/DELETE) harus menyertakan CSRF token (mis. lewat header X-CSRFToken atau cookie) agar middleware CSRF Django menerima request. Jika memakai API lintas asal juga perhatikan mekanisme CORS dan otentikasi.
+
+sumber: https://www.geeksforgeeks.org/python/how-to-integrate-ajax-with-django-applications/
+
+3. Apa keuntungan menggunakan AJAX dibandingkan render biasa di Django?
+Menggunakan AJAX di Django membuat interaksi aplikasi terasa jauh lebih cepat dan mulus karena hanya bagian halaman yang perlu diperbarui bukan seluruh halaman. Sehingga delay persepsi (perceived latency) berkurang, UI tetap responsif, dan penggunaan bandwidth menjadi lebih efisien karena hanya data (biasanya JSON) yang dikirim/diterima, bukan HTML lengkap. Selain itu AJAX memudahkan fitur interaktif seperti validasi form real-time, auto-complete, infinite scroll, dan update bagian halaman tanpa memutus konteks pengguna, sehingga produktivitas dan kepuasan pengguna meningkat; di sisi pengembangan, ini juga memungkinkan pemisahan logika frontend/backend (lebih mudah diintegrasikan dengan single-page interactions atau frontend framework). Namun perlu diingat bahwa keuntungan ini datang dengan kompleksitas tambahan (error handling, sinkronisasi state, CSRF/CORS, dan pertimbangan SEO/aksesibilitas) yang harus di-manage.
+
+sumber: https://hosteko.com/blog/ajax-pengertian-fungsi-kelebihan-dan-kekurangan?utm_source=chatgpt.com "AJAX : Pengertian, fungsi, Kelebihan dan Kekurangan"
+
+4. Bagaimana cara memastikan keamanan saat menggunakan AJAX untuk fitur Login dan Register di Django?
+
+Amankan transport dengan HTTPS, kirim kredensial lewat POST dan selalu sertakan CSRF token (header X-CSRFToken atau cookie + credentials), lakukan semua validasi & hashing password di server (pakai authenticate/set_password Django) — jangan percaya JS di client, dan jangan simpan password/token sensitif di localStorage (lebih aman pakai HttpOnly cookie untuk token). Tambahkan rate limiting / brute-force protection (mis. django-axes), beri pesan error generik (jangan ungkap apakah username atau password yang salah), atur cookie aman (SESSION_COOKIE_SECURE=True, SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE='Lax'), konfigurasi CORS jika front-end beda origin, aktifkan header keamanan (CSP, X-Frame-Options, X-Content-Type-Options) serta logging/monitoring. Untuk pendaftaran, pertimbangkan verifikasi email dan CAPTCHA sebagai lapisan tambahan. 
+
+sumber: https://stackoverflow.com/questions/41361855/validate-login-form-using-ajax-and-json
+
+5. Bagaimana AJAX mempengaruhi pengalaman pengguna (User Experience) pada website?
+
+AJAX membuat pengalaman pengguna terasa jauh lebih cepat dan mulus karena hanya bagian halaman yang diperbarui bukan seluruh halaman sehingga persepsi responsifitas membaik: pengguna melihat feedback instan (validasi form real-time, autocomplete, live search, infinite scroll, update notifikasi) tanpa kehilangan konteks atau memuat ulang halaman. Ini juga menghemat bandwidth (kirim/terima data ringan seperti JSON), memungkinkan interaksi paralel dan transisi UI yang halus, serta membuka jalan untuk pola modern seperti single-page interactions atau progressive enhancement.
+
+Namun AJAX juga menambah kompleksitas: state aplikasi harus disinkronkan antara frontend dan server (mis. history/URL, undo, refresh), perlu penanganan error dan loading yang jelas (spinner, disabled state), serta perhatian ekstra untuk aksesibilitas dan SEO (sediakan fallback server-rendered atau SSR jika perlu, gunakan ARIA, dan kelola pushState agar back/forward bekerja). Intinya—ketika diterapkan dengan baik, AJAX meningkatkan kepuasan dan produktivitas pengguna namun juga harus disertai desain UX yang sadar akan loading, error, dan aksesibilitas.
+
+sumber: https://www.barajacoding.or.id/memahami-ajax-asynchronous-web-development-untuk-pengalaman-pengguna-yang-responsif/

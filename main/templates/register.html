@@ -5,7 +5,7 @@
 {% endblock meta %}
 
 {% block content %}
-<div class="form-style">
+<div id="register-container" class="form-style">
   <div class="min-h-screen bg-[#FFFCEF] flex items-center justify-center p-8">
     <div class="max-w-md w-full relative z-10">
       <div class="bg-[#B80102] border border-[#B80102] rounded-lg p-8 shadow-sm">
@@ -39,7 +39,7 @@
         </div>
       {% endif %}
 
-      <form method="POST" action="" class="space-y-5">
+      <form id="register-ajax-form" method="POST" action="" class="space-y-5" novalidate>
         {% csrf_token %}
         
         <div>
@@ -84,23 +84,23 @@
 
       <!-- Messages Display -->
       {% if messages %}
-        <div class="mt-6">
+        <div id="messages-area" class="mt-6">
           {% for message in messages %}
             <div 
-              class="
-                px-4 py-3 rounded text-sm border
+              class="px-4 py-3 rounded text-sm border
                 {% if message.tags == 'success' %}
                   bg-green-50 border-green-200 text-green-700
                 {% elif message.tags == 'error' %}
                   bg-red-50 border-red-200 text-red-700
                 {% else %}
                   bg-gray-50 border-gray-200 text-gray-700
-                {% endif %}
-              ">
+                {% endif %}">
               {{ message }}
             </div>
           {% endfor %}
         </div>
+      {% else %}
+        <div id="messages-area" class="mt-6" aria-live="polite"></div>
       {% endif %}
 
       <div class="mt-6 text-center">
@@ -115,4 +115,124 @@
     </div>
   </div>
 </div>
+
+<!-- AJAX SCRIPT: tidak mengubah tampilan; letakkan di bawah template -->
+<script>
+(function () {
+  // Ambil cookie CSRF (Django)
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+
+  // Menampilkan pesan singkat di #messages-area
+  function showTemporaryMessage(html, type) {
+    const area = document.querySelector('#messages-area');
+    if (!area) return;
+    const div = document.createElement('div');
+    const base = 'px-4 py-3 rounded text-sm border mb-2';
+    if (type === 'success') {
+      div.className = base + ' bg-green-50 border-green-200 text-green-700';
+    } else if (type === 'error') {
+      div.className = base + ' bg-red-50 border-red-200 text-red-700';
+    } else {
+      div.className = base + ' bg-gray-50 border-gray-200 text-gray-700';
+    }
+    div.innerHTML = html;
+    area.prepend(div);
+    setTimeout(() => div.remove(), 6000);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('register-ajax-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn ? submitBtn.innerHTML : null;
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.setAttribute('aria-busy', 'true');
+      }
+
+      const formData = new FormData(form);
+      const headers = {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': getCookie('csrftoken') || ''
+      };
+
+      try {
+        const response = await fetch(form.action || window.location.href, {
+          method: 'POST',
+          headers: headers,
+          body: formData,
+          credentials: 'same-origin',
+          redirect: 'follow'
+        });
+
+        // Jika backend meredirect (login/registrasi sukses biasanya redirect)
+        if (response.redirected) {
+          window.location.href = response.url;
+          return;
+        }
+
+        const contentType = response.headers.get('Content-Type') || '';
+
+        if (contentType.includes('application/json')) {
+          const data = await response.json();
+          if (data.redirect) {
+            window.location.href = data.redirect;
+            return;
+          }
+          if (data.success) {
+            showToast('Berhasil Mendaftar');
+            setTimeout(() => {
+              window.location.href = "{% url 'main:register' %}";
+            }, 1800);
+            return;
+          }
+          if (data.errors) {
+            if (Array.isArray(data.errors)) {
+              data.errors.forEach(err => showTemporaryMessage(err, 'error'));
+            } else if (typeof data.errors === 'object') {
+              // jika errors adalah dict field -> list
+              Object.values(data.errors).flat().forEach(err => showTemporaryMessage(err, 'error'));
+            } else {
+              showTemporaryMessage(String(data.errors), 'error');
+            }
+            return;
+          }
+        } else {
+          // Biasanya backend mengembalikan HTML (form dengan error)
+          const text = await response.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(text, 'text/html');
+          const newContainer = doc.querySelector('#register-container');
+
+          if (newContainer) {
+            const current = document.querySelector('#register-container');
+            current.innerHTML = newContainer.innerHTML;
+            return;
+          } else {
+            showTemporaryMessage('Terjadi kesalahan saat memproses respon server.', 'error');
+          }
+        }
+      } catch (err) {
+        console.error('AJAX register error:', err);
+        showTemporaryMessage('Network error. Periksa koneksi dan coba lagi.', 'error');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.removeAttribute('aria-busy');
+          if (originalBtnText) submitBtn.innerHTML = originalBtnText;
+        }
+      }
+    });
+  });
+})();
+</script>
+
 {% endblock content %}

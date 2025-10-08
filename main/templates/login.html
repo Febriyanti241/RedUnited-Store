@@ -5,7 +5,7 @@
 {% endblock meta %}
 
 {% block content %}
-<div class="bg-[#FFFCEF] w-full min-h-screen flex items-center justify-center p-8">
+<div id="login-container" class="bg-[#FFFCEF] w-full min-h-screen flex items-center justify-center p-8">
   <div class="max-w-md w-full">
     <div class="bg-[#B80102] rounded-lg border border-gray-200 p-6 sm:p-8 form-style">
       <div class="text-center mb-8">
@@ -38,7 +38,7 @@
         </div>
       {% endif %}
 
-      <form method="POST" action="" class="space-y-6">
+      <form id="login-ajax-form" method="POST" action="" class="space-y-6" novalidate>
         {% csrf_token %}
         
         <div>
@@ -72,7 +72,7 @@
 
       <!-- Messages Display -->
       {% if messages %}
-        <div class="mt-6">
+        <div id="messages-area" class="mt-6">
           {% for message in messages %}
             <div 
               class="
@@ -89,6 +89,9 @@
             </div>
           {% endfor %}
         </div>
+      {% else %}
+        <!-- kosong dulu, bisa diisi oleh JS bila perlu -->
+        <div id="messages-area" class="mt-6" aria-live="polite"></div>
       {% endif %}
 
       <div class="mt-6 text-center pt-6 border-t border-gray-200">
@@ -102,4 +105,145 @@
     </div>
   </div>
 </div>
+
+
+<!-- AJAX SCRIPT: tetap di bawah template, tidak mengubah desain -->
+<script>
+(function () {
+  // Ambil cookie CSRF (Django)
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+
+  // Tampilkan pesan sementara di #messages-area
+  function showTemporaryMessage(html, type) {
+    const area = document.querySelector('#messages-area');
+    if (!area) return;
+    const div = document.createElement('div');
+    const baseClasses = 'px-4 py-3 rounded-md text-sm border mb-2';
+    if (type === 'success') {
+      div.className = baseClasses + ' bg-green-50 border-green-200 text-green-700';
+    } else if (type === 'error') {
+      div.className = baseClasses + ' bg-red-50 border-red-200 text-red-700';
+    } else {
+      div.className = baseClasses + ' bg-gray-50 border-gray-200 text-gray-700';
+    }
+    div.innerHTML = html;
+    area.prepend(div);
+    // auto remove setelah 6 detik
+    setTimeout(() => div.remove(), 6000);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('login-ajax-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn ? submitBtn.innerHTML : null;
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.setAttribute('aria-busy', 'true');
+      }
+
+      const formData = new FormData(form);
+      // Jika server mengharapkan header X-Requested-With untuk ajax, kita kirim:
+      const headers = {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': getCookie('csrftoken') || ''
+      };
+
+      try {
+        const response = await fetch(form.action || window.location.href, {
+          method: 'POST',
+          headers: headers,
+          body: formData,
+          credentials: 'same-origin',
+          redirect: 'follow' // biarkan fetch mengikuti redirect
+        });
+
+        // Jika server melakukan redirect (mis. login sukses -> redirect ke dashboard)
+        if (response.redirected) {
+          showToast("Login Successful");
+          setTimeout(() => {
+            window.location.href = response.url;
+          }, 1200);
+          return;
+        }
+
+
+        const contentType = response.headers.get('Content-Type') || '';
+
+        if (contentType.includes('application/json')) {
+          // Bila backend mengembalikan JSON (opsional)
+          const data = await response.json();
+          if (data.redirect) {
+            window.location.href = data.redirect;
+            return;
+          }
+          if (data.success) {
+            // jika backend memberi tahu sukses tanpa redirect, reload atau redirect sesuai kebutuhan
+            window.location.reload();
+            return;
+          }
+          // Jika ada errors di JSON, tampilkan di messages-area
+          if (data.errors) {
+            // asumsi: data.errors adalah array atau string
+            if (Array.isArray(data.errors)) {
+              data.errors.forEach(err => showTemporaryMessage(err, 'error'));
+            } else {
+              showTemporaryMessage(String(data.errors), 'error');
+            }
+            return;
+          }
+        } else {
+          // Bila backend mengembalikan HTML (contoh: form login lagi dengan error),
+          // kita parse HTML dan ganti isi #login-container dengan isi baru dari server
+          const text = await response.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(text, 'text/html');
+          const newContainer = doc.querySelector('#login-container');
+
+          if (newContainer) {
+            // replace innerHTML agar style & struktur tetap sama
+            const current = document.querySelector('#login-container');
+            current.innerHTML = newContainer.innerHTML;
+
+            // Opsional: jika server mengirim lokasi baru (mis: query param next),
+            // kita bisa ubah URL tanpa reload, tapi jangan ubah perilaku default.
+            return;
+          } else {
+            // fallback: kalau tidak dapat #login-container dari server,
+            // tunjukkan pesan general
+            showTemporaryMessage('Terjadi kesalahan saat memproses respon server.', 'error');
+          }
+        }
+      } catch (err) {
+        console.error('AJAX login error:', err);
+        showTemporaryMessage('Network error. Periksa koneksi dan coba lagi.', 'error');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.removeAttribute('aria-busy');
+          if (originalBtnText) submitBtn.innerHTML = originalBtnText;
+        }
+      }
+    });
+  });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const cookies = document.cookie.split(';').map(c => c.trim());
+  const logoutCookie = cookies.find(c => c.startsWith('logout_success='));
+  if (logoutCookie) {
+    showToast("Berhasil Logout", "Sampai jumpa lagi di RedUnited Store 👋");
+    document.cookie = "logout_success=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  }
+});
+})();
+</script>
+
 {% endblock content %}

@@ -1,0 +1,224 @@
+<!-- modal_product.html -->
+<!-- Modal untuk Create / Update Product (copy-paste ke template utama) -->
+<div id="crudModal" class="hidden fixed inset-0 z-50 w-full flex items-center justify-center bg-black bg-opacity-50">
+  <div id="crudModalContent" class="bg-[#FFFCEF] rounded-lg shadow-lg w-11/12 sm:w-3/5 md:w-1/2 lg:w-2/5 xl:w-1/3 max-h-screen overflow-y-auto transition-transform duration-150">
+    <!-- Header -->
+    <div class="flex items-center justify-between p-4 border-b">
+      <div>
+        <h3 id="crudModalTitle" class="text-xl font-semibold text-[#7B0101]">Create New Product</h3>
+        <p id="crudModalSubtitle" class="text-sm text-[#7B0101] mt-1">Add your football product to the store</p>
+      </div>
+      <button type="button" class="text-gray-400 hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center" onclick="hideModal()">
+        <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+        <span class="sr-only">Close modal</span>
+      </button>
+    </div>
+
+    <!-- Body (form) -->
+    <div class="px-6 py-4">
+      <!-- Default action points to create endpoint; JS will change action for edit -->
+      <form id="productForm" method="post" action="{% url 'main:create_product' %}">
+        {% csrf_token %}
+        <!-- hidden id untuk edit -->
+        <input type="hidden" id="product_id" name="product_id" value="">
+
+        <div class="mb-4">
+          <label for="name" class="block text-sm font-medium text-[#7B0101]">Product Name</label>
+          <input type="text" id="name" name="name" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Enter product name" required>
+        </div>
+
+        <div class="mb-4">
+          <label for="price" class="block text-sm font-medium text-[#7B0101]">Price</label>
+          <input type="number" id="price" name="price" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Enter product price" required>
+        </div>
+
+        <div class="mb-4">
+          <label for="description" class="block text-sm font-medium text-[#7B0101]">Description</label>
+          <textarea id="description" name="description" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Enter product description" required></textarea>
+        </div>
+
+        <div class="mb-4">
+          <label for="category" class="block text-sm font-medium text-[#7B0101]">Category</label>
+          <select id="category" name="category" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" required>
+            <option value="">Choose a category</option>
+            <option value="clothing">Clothing</option>
+            <option value="socks">Socks</option>
+            <option value="shoes">Shoes</option>
+            <option value="misc">Miscellaneous</option>
+          </select>
+        </div>
+
+        <div class="mb-4">
+          <label for="thumbnail" class="block text-sm font-medium text-[#7B0101]">Thumbnail URL</label>
+          <input type="url" id="thumbnail" name="thumbnail" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" placeholder="https://example.com/product.jpg">
+        </div>
+
+        <div class="mb-4">
+          <label class="inline-flex items-center">
+            <input id="is_featured" name="is_featured" type="checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded">
+            <span class="ml-2 text-sm text-[#7B0101]">Featured Product</span>
+          </label>
+        </div>
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <div class="flex flex-col sm:flex-row gap-4 p-6 border-t">
+      <button type="button" id="cancelButton" class="order-2 sm:order-1 px-6 py-3 border border-gray-300 text-[#7B0101] rounded-md font-medium hover:bg-gray-50" onclick="hideModal()">Cancel</button>
+      <button type="submit" id="submitProduct" form="productForm" class="order-1 sm:order-2 flex-1 bg-[#EF9101] text-white px-6 py-3 rounded-md font-medium hover:bg-[#FFE600]">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ------------- Helpers ------------- */
+function getCookie(name) {
+  const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return v ? decodeURIComponent(v.pop()) : '';
+}
+
+/* ------------- Modal show/hide ------------- */
+function showModal(mode = 'create') {
+  const modal = document.getElementById('crudModal');
+  const title = document.getElementById('crudModalTitle');
+  const subtitle = document.getElementById('crudModalSubtitle');
+  const form = document.getElementById('productForm');
+
+  if (!modal || !form) return;
+
+  if (mode === 'create') {
+    title.textContent = 'Create New Product';
+    subtitle.textContent = 'Add your football product to the store';
+    // reset form and default action
+    form.reset();
+    document.getElementById('product_id').value = '';
+    form.action = "{% url 'main:create_product' %}";
+  } else if (mode === 'edit') {
+    title.textContent = 'Edit Product';
+    subtitle.textContent = 'Update product details';
+    // do NOT reset form — caller (openEditModal) already filled fields & set action
+  }
+
+  modal.classList.remove('hidden');
+
+  // focus first input if present
+  setTimeout(() => {
+    const first = document.getElementById('name');
+    if (first) first.focus();
+  }, 60);
+}
+
+function hideModal() {
+  const modal = document.getElementById('crudModal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+}
+
+/* close when clicking overlay or pressing ESC */
+(function attachModalCloseHandlers(){
+  const modal = document.getElementById('crudModal');
+  if (!modal) return;
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) hideModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') hideModal();
+  });
+})();
+
+/* ------------- Open Edit Modal (fills fields + set form.action) ------------- */
+async function openEditModal(productId) {
+  if (!productId) return console.warn('openEditModal called without id');
+
+  // endpoint to fetch product JSON (adjust name if your url name differs)
+  const fetchUrlTemplate = "{% url 'main:show_json_by_id' '00000000-0000-0000-0000-000000000000' %}";
+  const fetchUrl = fetchUrlTemplate.replace('00000000-0000-0000-0000-000000000000', productId);
+
+  try {
+    const resp = await fetch(fetchUrl, {
+      headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin'
+    });
+
+    if (!resp.ok) {
+      console.error('Failed to fetch product for edit', resp.status);
+      alert('Gagal mengambil data product untuk edit.');
+      return;
+    }
+
+    const data = await resp.json();
+    // your JSON structure earlier was like [ { pk: ..., fields: { name, price, ... } } ]
+    const item = Array.isArray(data) ? (data[0]?.fields || {}) : (data || {});
+
+    // populate fields
+    document.getElementById('product_id').value = productId;
+    document.getElementById('name').value = item.name ?? '';
+    document.getElementById('price').value = item.price ?? '';
+    document.getElementById('description').value = item.description ?? '';
+    document.getElementById('category').value = item.category ?? '';
+    document.getElementById('thumbnail').value = item.thumbnail ?? '';
+    document.getElementById('is_featured').checked = !!item.is_featured;
+
+    // set form action to edit endpoint (replace placeholder)
+    const editUrlTemplate = "{% url 'main:edit_product' '00000000-0000-0000-0000-000000000000' %}";
+    document.getElementById('productForm').action = editUrlTemplate.replace('00000000-0000-0000-0000-000000000000', productId);
+
+    // open modal in edit mode (do NOT reset)
+    showModal('edit');
+  } catch (err) {
+    console.error('Error in openEditModal', err);
+    alert('Terjadi kesalahan saat membuka modal edit.');
+  }
+}
+
+/* ------------- Submit handler (AJAX) ------------- */
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('productForm');
+  if (!form) return;
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    // Basic client validation (optional)
+    const name = form.querySelector('#name')?.value?.trim();
+    const price = form.querySelector('#price')?.value;
+    const desc = form.querySelector('#description')?.value?.trim();
+    if (!name || !price || !desc) {
+      alert('Nama, harga, dan deskripsi wajib diisi.');
+      return;
+    }
+
+    // Use form.action (set to create by default, or edit by openEditModal)
+    const action = form.action || "{% url 'main:create_product' %}";
+    const fd = new FormData(form);
+
+    // Some backends expect boolean checkbox as 'on' or absent; leave as-is.
+    try {
+      const resp = await fetch(action, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCookie('csrftoken') },
+        body: fd
+      });
+
+      if (resp.ok) {
+        // if server returns JSON, you might want to parse it:
+        // const json = await resp.json().catch(()=>null);
+        hideModal();
+        // reset only when creating, but safe to reset always
+        form.reset();
+        // refresh product list if function exists in page
+        if (typeof fetchProductFromServer === 'function') fetchProductFromServer();
+        return;
+      }
+      // If server returned 400/500 - try to show message
+      const text = await resp.text().catch(()=>null);
+      console.error('Save failed', resp.status, text);
+      alert('Gagal menyimpan product. Cek console/network untuk detail.');
+    } catch (err) {
+      console.error('Error while saving product', err);
+      alert('Terjadi kesalahan saat menyimpan product.');
+    }
+  });
+});
+</script>
