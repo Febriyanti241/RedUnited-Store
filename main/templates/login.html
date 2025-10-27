@@ -166,12 +166,9 @@
           redirect: 'follow' // biarkan fetch mengikuti redirect
         });
 
-        // Jika server melakukan redirect (mis. login sukses -> redirect ke dashboard)
         if (response.redirected) {
-          showToast("Login Successful");
-          setTimeout(() => {
-            window.location.href = response.url;
-          }, 1200);
+          // Langsung redirect tanpa toast untuk menghindari error
+          window.location.href = response.url;
           return;
         }
 

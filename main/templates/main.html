@@ -125,53 +125,83 @@ const showMyProductButton = document.getElementById('my');
 let activeFilter = 'all';
 let allProductData = [];
 
+// === Utility Functions ===
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+// Safe showToast wrapper
+function safeShowToast(title, message) {
+  if (typeof showToast === 'function') {
+    showToast(title, message);
+  } else {
+    console.log(`Toast: ${title} - ${message}`);
+  }
+}
+
 // === State Handler ===
 function showLoading() {
-  loadingSpinner.classList.remove('hidden');
-  errorMessage.classList.add('hidden');
-  emptyStateDisplay.classList.add('hidden');
-  productGridContainer.classList.add('hidden');
+  loadingSpinner?.classList.remove('hidden');
+  errorMessage?.classList.add('hidden');
+  emptyStateDisplay?.classList.add('hidden');
+  productGridContainer?.classList.add('hidden');
 }
 
 function showError(message = 'Terjadi kesalahan saat memuat data 😥') {
-  loadingSpinner.classList.add('hidden');
-  emptyStateDisplay.classList.add('hidden');
-  productGridContainer.classList.add('hidden');
+  loadingSpinner?.classList.add('hidden');
+  emptyStateDisplay?.classList.add('hidden');
+  productGridContainer?.classList.add('hidden');
 
-  errorMessage.classList.remove('hidden');
-  errorMessage.innerHTML = `
-    <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-6 text-center">
-      <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto mb-3 h-10 w-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M12 9v2m0 4h.01M12 5a7 7 0 11-7 7 7 7 0 017-7z" />
-      </svg>
-      <p class="font-semibold">${message}</p>
-      <button onclick="fetchProductFromServer()" class="mt-4 px-4 py-2 bg-[#EF9101] text-white rounded-md hover:bg-[#FFE600] transition">
-        Coba Lagi
-      </button>
-    </div>
-  `;
+  if (errorMessage) {
+    errorMessage.classList.remove('hidden');
+    errorMessage.innerHTML = `
+      <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-6 text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto mb-3 h-10 w-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 9v2m0 4h.01M12 5a7 7 0 11-7 7 7 7 0 017-7z" />
+        </svg>
+        <p class="font-semibold">${message}</p>
+        <button onclick="fetchProductFromServer()" class="mt-4 px-4 py-2 bg-[#EF9101] text-white rounded-md hover:bg-[#FFE600] transition">
+          Coba Lagi
+        </button>
+      </div>
+    `;
+  }
 }
 
 function showEmpty() {
-  loadingSpinner.classList.add('hidden');
-  errorMessage.classList.add('hidden');
-  productGridContainer.classList.add('hidden');
-  emptyStateDisplay.classList.remove('hidden');
+  loadingSpinner?.classList.add('hidden');
+  errorMessage?.classList.add('hidden');
+  productGridContainer?.classList.add('hidden');
+  emptyStateDisplay?.classList.remove('hidden');
 }
 
 function showGrid() {
-  loadingSpinner.classList.add('hidden');
-  errorMessage.classList.add('hidden');
-  emptyStateDisplay.classList.add('hidden');
-  productGridContainer.classList.remove('hidden');
+  loadingSpinner?.classList.add('hidden');
+  errorMessage?.classList.add('hidden');
+  emptyStateDisplay?.classList.add('hidden');
+  productGridContainer?.classList.remove('hidden');
 }
 
 // === Fetch Data dari Server ===
 async function fetchProductFromServer() {
   try {
     showLoading();
-    const response = await fetch(PRODUCT_API_ENDPOINT, { headers: { 'Accept': 'application/json' } });
+    const response = await fetch(PRODUCT_API_ENDPOINT, { 
+      headers: { 'Accept': 'application/json' } 
+    });
+    
     if (!response.ok) throw new Error('Gagal memuat data dari server');
 
     const productData = await response.json();
@@ -200,44 +230,172 @@ function renderProducts() {
     return;
   }
 
+  productGridContainer.classList.remove('hidden');
+  productGridContainer.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6';
   productGridContainer.innerHTML = '';
+  
   filtered.forEach(item => {
-    const el = document.createElement('div');
-    el.className = 'bg-[#7B0101] rounded-lg overflow-hidden text-white p-4 hover:shadow-lg transition';
+    const el = document.createElement('article');
+    el.className = 'bg-[#7B0101] rounded-lg border border-[#7B0101] hover:shadow-lg transition-shadow duration-300 overflow-hidden';
+    
+    // Check if user owns this product
+    const isOwner = Number(item.user_id) === Number(CURRENT_USER_ID);
+    
     el.innerHTML = `
-      <h3 class="font-bold text-lg mb-2">${item.name}</h3>
-      <p class="text-sm mb-3">${item.description}</p>
-      <div class="flex justify-between text-sm">
-        <span>💰 ${item.price}</span>
-        <span>📦 ${item.category}</span>
+      <!-- Thumbnail -->
+      <div class="aspect-[16/9] relative overflow-hidden">
+        ${item.thumbnail 
+          ? `<img src="${item.thumbnail}" alt="${item.name}" class="w-full h-full object-cover">`
+          : `<div class="w-full h-full bg-gray-200"></div>`
+        }
+        
+        <!-- Category Badge -->
+        <div class="absolute top-3 left-3">
+          <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-[#FFFCEF] text-yellow-800">
+            ${item.category}
+          </span>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="p-5">
+        <div class="flex items-center text-base font-semibold text-[#FFE600] mb-3">
+          <time datetime="${item.date_added}">
+            ${new Date(item.date_added).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          </time>
+          <span class="mx-2">•</span>
+          <span>Price: ${item.price}</span>
+        </div>
+
+        <h3 class="text-lg font-semibold text-[#FFFCEF] mb-3 line-clamp-2 leading-tight">
+          <a href="/product/${item.id}/" class="hover:text-[#EF9101] transition-colors">
+            ${item.name}
+          </a>
+        </h3>
+
+        <p class="text-gray-300 text-sm leading-relaxed line-clamp-3 mb-4">
+          ${item.description.substring(0, 100)}${item.description.length > 100 ? '...' : ''}
+        </p>
+
+        <!-- Action Buttons -->
+        ${isOwner ? `
+          <div class="flex items-center justify-between pt-4 border-t border-gray-600">
+            <a href="/product/${item.id}/" class="text-[#FFE600] hover:text-[#EF9101] font-medium text-sm transition-colors">
+              Details
+            </a>
+
+            <div class="flex items-center space-x-2">
+              <a href="/product/${item.id}/edit" 
+                 class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-[#FFFCEF] hover:bg-gray-200 text-gray-700 transition-colors shadow-sm">
+                Edit
+              </a>
+
+              <button onclick="confirmDelete('${item.id}', '${item.name.replace(/'/g, "\\'")}')"
+                      class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium bg-red-600 hover:bg-red-700 text-white transition-colors shadow-sm"
+                      aria-label="Delete product ${item.name}">
+                Delete
+              </button>
+            </div>
+          </div>
+        ` : `
+          <div class="pt-4 border-t border-gray-600">
+            <a href="/product/${item.id}/" class="text-[#FFE600] hover:text-[#EF9101] font-medium text-sm transition-colors">
+              Details
+            </a>
+          </div>
+        `}
       </div>
     `;
+    
     productGridContainer.appendChild(el);
   });
 }
 
-// === Event Filter ===
-showAllProductButton.addEventListener('click', () => {
-  activeFilter = 'all';
-  renderProducts();
-  showGrid();
-});
+// === Fungsi Delete dengan Confirmation ===
+function confirmDelete(productId, productName) {
+  const modal = document.getElementById('deleteConfirmModal');
+  const nameSpan = document.getElementById('deleteProductName');
+  const confirmBtn = document.getElementById('confirmDeleteBtn');
+  const cancelBtn = document.getElementById('cancelDeleteBtn');
+  
+  nameSpan.textContent = productName;
+  modal.classList.remove('hidden');
+  
+  // Handle confirm
+  confirmBtn.onclick = async () => {
+    try {
+      const response = await fetch(`/product/${productId}/delete-ajax`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        modal.classList.add('hidden');
+        if (typeof showToast !== 'undefined') {
+          showToast('Success', 'Product deleted successfully');
+        }
+        await fetchProductFromServer(); // Refresh list
+      } else {
+        alert('Failed to delete product');
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('Error deleting product');
+    }
+  };
+  
+  // Handle cancel
+  cancelBtn.onclick = () => {
+    modal.classList.add('hidden');
+  };
+}
 
-showMyProductButton.addEventListener('click', () => {
-  activeFilter = 'my';
-  renderProducts();
-  showGrid();
-});
+// === Event Filter ===
+if (showAllProductButton) {
+  showAllProductButton.addEventListener('click', () => {
+    activeFilter = 'all';
+    showAllProductButton.classList.add('bg-[#FFE600]');
+    showMyProductButton?.classList.remove('bg-[#FFE600]');
+    renderProducts();
+  });
+}
+
+if (showMyProductButton) {
+  showMyProductButton.addEventListener('click', () => {
+    activeFilter = 'my';
+    showMyProductButton.classList.add('bg-[#FFE600]');
+    showAllProductButton?.classList.remove('bg-[#FFE600]');
+    renderProducts();
+  });
+}
 
 // === Tombol Refresh ===
-document.getElementById('refreshButton').addEventListener('click', async () => {
-  showToast?.('Menyegarkan...', 'Memuat produk terbaru...');
-  await fetchProductFromServer();
-  showToast?.('Berhasil', 'Produk diperbarui!');
-});
+const refreshButton = document.getElementById('refreshButton');
+if (refreshButton) {
+  refreshButton.addEventListener('click', async () => {
+    safeShowToast('Refreshing...', 'Loading latest products...');
+    await fetchProductFromServer();
+    safeShowToast('Success', 'Products updated!');
+  });
+}
+
+// === Close modal on overlay click ===
+const deleteModal = document.getElementById('deleteConfirmModal');
+if (deleteModal) {
+  deleteModal.addEventListener('click', (e) => {
+    if (e.target === deleteModal) {
+      deleteModal.classList.add('hidden');
+    }
+  });
+}
 
 // === Jalankan Pertama Kali ===
-fetchProductFromServer();
+document.addEventListener('DOMContentLoaded', () => {
+  fetchProductFromServer();
+});
 </script>
 
 
