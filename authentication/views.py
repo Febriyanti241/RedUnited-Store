@@ -143,6 +143,7 @@ def create_product_flutter(request):
                     "message": "Product description cannot be empty"
                 }, status=400)
             
+            # PERBAIKAN: Hanya gunakan field yang ada di model
             new_product = Product(
                 name=name, 
                 price=price,
@@ -173,6 +174,7 @@ def create_product_flutter(request):
             "status": "error",
             "message": "Invalid request method"
         }, status=405)
+    
 
 # FUNGSI BARU: Menampilkan produk milik user yang login
 @csrf_exempt
